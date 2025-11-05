@@ -1,5 +1,3 @@
-<h1 style='color:white;background:black;text-align:center;padding:20px'>Panel Admin</h1>
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -74,7 +72,6 @@
       border-radius: 10px;
       margin-top: 10px;
     }
-
   </style>
 </head>
 <body>
@@ -104,7 +101,7 @@
       apiKey: "AIzaSyBvfUIj4VJOnwFPHsGZvXSSQ8CIIg5Gabk",
       authDomain: "word-lives.firebaseapp.com",
       projectId: "word-lives",
-      storageBucket: "word-lives.appspot.com", // 🔧 corregido
+      storageBucket: "word-lives.appspot.com",
       messagingSenderId: "792720149975",
       appId: "1:792720149975:web:53e90b7e2d6709c59c8f92"
     };
@@ -116,7 +113,7 @@
     const addModForm = document.getElementById("addModForm");
     const modsContainer = document.getElementById("modsContainer");
 
-    // Cargar mods
+    // 🔹 Cargar mods existentes
     async function loadMods() {
       modsContainer.innerHTML = "";
       const querySnapshot = await getDocs(collection(db, "mods"));
@@ -126,7 +123,7 @@
         div.classList.add("mod");
         div.innerHTML = `
           <h3>${mod.title}</h3>
-          <p>${mod.description}</p>
+          <p>${mod.desc || "(Sin descripción)"}</p>
           ${mod.image ? `<img src="${mod.image}" alt="${mod.title}">` : ""}
           <button onclick="editMod('${docSnap.id}')">Editar</button>
           <button onclick="deleteMod('${docSnap.id}')">Eliminar</button>
@@ -135,7 +132,7 @@
       });
     }
 
-    // Editar mod
+    // 🔹 Editar mod
     window.editMod = async (id) => {
       const docRef = doc(db, "mods", id);
       const modSnap = await getDoc(docRef);
@@ -143,12 +140,12 @@
         const mod = modSnap.data();
         document.getElementById("modId").value = id;
         document.getElementById("modTitle").value = mod.title;
-        document.getElementById("modDescription").value = mod.description;
+        document.getElementById("modDescription").value = mod.desc || "";
         window.scrollTo({ top: 0, behavior: "smooth" });
       }
     };
 
-    // Eliminar mod
+    // 🔹 Eliminar mod
     window.deleteMod = async (id) => {
       if (confirm("¿Seguro que deseas eliminar este mod?")) {
         await deleteDoc(doc(db, "mods", id));
@@ -157,15 +154,15 @@
       }
     };
 
-    // Guardar mod
+    // 🔹 Guardar o actualizar mod
     addModForm.addEventListener("submit", async (e) => {
       e.preventDefault();
       const id = document.getElementById("modId").value.trim();
       const title = document.getElementById("modTitle").value.trim();
-      const description = document.getElementById("modDescription").value.trim();
+      const desc = document.getElementById("modDescription").value.trim();
       const imageFile = document.getElementById("modImage").files[0];
 
-      if (!title || !description) {
+      if (!title || !desc) {
         alert("Por favor llena todos los campos.");
         return;
       }
@@ -179,18 +176,24 @@
 
       if (id) {
         const docRef = doc(db, "mods", id);
-        const updateData = { title, description };
+        const updateData = { title, desc };
         if (imageUrl) updateData.image = imageUrl;
         await updateDoc(docRef, updateData);
         alert("✅ Mod actualizado");
       } else {
-        await addDoc(collection(db, "mods"), { title, description, image: imageUrl });
+        await addDoc(collection(db, "mods"), { title, desc, image: imageUrl, date: new Date() });
         alert("✅ Mod agregado");
       }
 
       addModForm.reset();
       loadMods();
     });
+
+    loadMods();
+  </script>
+</body>
+</html>
+
 
     loadMods();
   </script>
