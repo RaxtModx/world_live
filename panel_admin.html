@@ -93,14 +93,18 @@
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
-    import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
-    import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-storage.js";
+    import { 
+      getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, getDoc 
+    } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+    import { 
+      getStorage, ref, uploadBytes, getDownloadURL 
+    } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-storage.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyBvfUIj4VJOnwFPHsGZvXSSQ8CIIg5Gabk",
       authDomain: "word-lives.firebaseapp.com",
       projectId: "word-lives",
-      storageBucket: "word-lives.firebasestorage.app",
+      storageBucket: "word-lives.appspot.com", // 🔧 corregido
       messagingSenderId: "792720149975",
       appId: "1:792720149975:web:53e90b7e2d6709c59c8f92"
     };
@@ -131,6 +135,7 @@
       });
     }
 
+    // Editar mod
     window.editMod = async (id) => {
       const docRef = doc(db, "mods", id);
       const modSnap = await getDoc(docRef);
@@ -143,6 +148,7 @@
       }
     };
 
+    // Eliminar mod
     window.deleteMod = async (id) => {
       if (confirm("¿Seguro que deseas eliminar este mod?")) {
         await deleteDoc(doc(db, "mods", id));
@@ -151,23 +157,31 @@
       }
     };
 
+    // Guardar mod
     addModForm.addEventListener("submit", async (e) => {
       e.preventDefault();
-      const id = document.getElementById("modId").value;
-      const title = document.getElementById("modTitle").value;
-      const description = document.getElementById("modDescription").value;
+      const id = document.getElementById("modId").value.trim();
+      const title = document.getElementById("modTitle").value.trim();
+      const description = document.getElementById("modDescription").value.trim();
       const imageFile = document.getElementById("modImage").files[0];
+
+      if (!title || !description) {
+        alert("Por favor llena todos los campos.");
+        return;
+      }
 
       let imageUrl = "";
       if (imageFile) {
-        const imageRef = ref(storage, "mods/" + imageFile.name);
+        const imageRef = ref(storage, "mods/" + Date.now() + "_" + imageFile.name);
         await uploadBytes(imageRef, imageFile);
         imageUrl = await getDownloadURL(imageRef);
       }
 
       if (id) {
         const docRef = doc(db, "mods", id);
-        await updateDoc(docRef, { title, description, image: imageUrl || undefined });
+        const updateData = { title, description };
+        if (imageUrl) updateData.image = imageUrl;
+        await updateDoc(docRef, updateData);
         alert("✅ Mod actualizado");
       } else {
         await addDoc(collection(db, "mods"), { title, description, image: imageUrl });
